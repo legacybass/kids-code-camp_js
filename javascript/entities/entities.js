@@ -1,29 +1,30 @@
 /**
  * Player Entity
  */
-game.PlayerEntity = me.Entity.extend( {    
+game.PlayerEntity = me.Entity.extend({
     /**
      * constructor
      */
-    init:function (x, y, settings) {
+    init:function (x, y, settings)
+    {
         // call the constructor
         this._super(me.Entity, 'init', [x, y , settings]);
         
         // set the default horizontal & vertical speed (accel vector)
         this.body.setVelocity(3, 15);
-             
+        
         // set the display to follow our position on both axis
         me.game.viewport.follow(this.pos, me.game.viewport.AXIS.BOTH);
-        
+
         // ensure the player is updated even when outside of the viewport
         this.alwaysUpdate = true;
-
+ 
         // define a basic walking animation (using all frames)
         this.renderable.addAnimation("walk",  [0, 1, 2, 3, 4, 5, 6, 7]);
         // define a standing animation (using the first frame)
         this.renderable.addAnimation("stand",  [0]);
         // set the standing animation as default
-        this.renderable.setCurrentAnimation("stand");
+        this.renderable.setCurrentAnimation("stand");       
     },
 
     /**
@@ -78,7 +79,7 @@ game.PlayerEntity = me.Entity.extend( {
         me.collision.check(this);
                  
         // return true if we moved or if the renderable was updated
-        return (this._super(me.Entity, 'update', [dt]) || this.body.vel.x !== 0 || this.body.vel.y !== 0);
+        return (this._super(me.Entity, 'update', [dt]) || this.body.vel.x !== 0 || this.body.vel.y !== 0);   
     },
     
     /**
@@ -131,20 +132,25 @@ game.PlayerEntity = me.Entity.extend( {
     }
 });
 
-
 /**
- * Coin Entity
+ * Player Entity
  */
-game.CoinEntity = me.CollectableEntity.extend( {    
-    init: function (x, y, settings) {
+game.CoinEntity = me.CollectableEntity.extend(
+{    
+    init: function (x, y, settings)
+    {
         // call the parent constructor
         this._super(me.CollectableEntity, 'init', [x, y , settings]);
     },
-
+    
     /**
      * colision handler
      */
     onCollision : function (response, other) {
+    
+        // give some score
+        game.data.score += 250;
+        
         //avoid further collision and delete it
         this.body.setCollisionMask(me.collision.types.NO_OBJECT);
 
@@ -152,6 +158,8 @@ game.CoinEntity = me.CollectableEntity.extend( {
 
         return false;
     }
+
+    
 });
 
 /**
@@ -175,14 +183,14 @@ game.EnemyEntity = me.Entity.extend(
 
         // redefine the default shape (used to define path) with a shape matching the renderable
         settings.shapes[0] = new me.Rect(0, 0, settings.framewidth, settings.frameheight);
-
+        
         // call the parent constructor
         this._super(me.Entity, 'init', [x, y , settings]);
         
         // set start/end position based on the initial area size
         x = this.pos.x;
         this.startX = x;
-        this.endX   = x + width - settings.framewidth;
+        this.endX   = x + width - settings.framewidth
         this.pos.x  = x + width - settings.framewidth;
 
         // to remember which side we were walking
@@ -191,10 +199,14 @@ game.EnemyEntity = me.Entity.extend(
         // walking & jumping speed
         this.body.setVelocity(4, 6);
     },
-        
+    
     // manage the enemy movement
     update : function (dt)
-    {            
+    {
+        // do nothing if not in viewport
+        if (!this.inViewport)
+            return false;
+            
         if (this.alive)
         {
             if (this.walkLeft && this.pos.x <= this.startX)
@@ -216,7 +228,7 @@ game.EnemyEntity = me.Entity.extend(
         }
         // check & update movement
         this.body.update(dt);
-        
+            
         // handle collisions against other shapes
         me.collision.check(this);
             
