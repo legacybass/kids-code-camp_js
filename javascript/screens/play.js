@@ -2,8 +2,11 @@ game.PlayScreen = me.ScreenObject.extend({
 	/**	
 	 *  action to perform on state change
 	 */
-	onResetEvent: function() {
- 
+	onResetEvent: function() {	
+		
+		// play the audio track
+		me.audio.playTrack("dst-inertexponent");
+		
         // load a level
 		me.levelDirector.loadLevel("area01");
 		
