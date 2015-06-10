@@ -16,7 +16,7 @@ game.PlayerEntity = me.Entity.extend({
              
         // set the display to follow our position on both axis
         me.game.viewport.follow(this.pos, me.game.viewport.AXIS.BOTH);
-        
+
         // ensure the player is updated even when outside of the viewport
         this.alwaysUpdate = true;
 
@@ -25,7 +25,7 @@ game.PlayerEntity = me.Entity.extend({
         // define a standing animation (using the first frame)
         this.renderable.addAnimation("stand",  [0]);
         // set the standing animation as default
-        this.renderable.setCurrentAnimation("stand");
+        this.renderable.setCurrentAnimation("stand");        
     },
 
     /**
@@ -82,10 +82,10 @@ game.PlayerEntity = me.Entity.extend({
         me.collision.check(this);
                  
         // return true if we moved or if the renderable was updated
-        return (this._super(me.Entity, 'update', [dt]) || this.body.vel.x !== 0 || this.body.vel.y !== 0);     
+        return (this._super(me.Entity, 'update', [dt]) || this.body.vel.x !== 0 || this.body.vel.y !== 0);      
     },
-    
-    /**
+
+   /**
      * colision handler
      */
     onCollision : function (response, other) {
@@ -148,11 +148,8 @@ game.CoinEntity = me.CollectableEntity.extend(
     {
         // call the parent constructor
         this._super(me.CollectableEntity, 'init', [x, y , settings]);
-
-        // set our collision callback function
-        this.body.onCollision = this.onCollision.bind(this);
     },
-    
+
     /**
      * colision handler
      */
@@ -207,7 +204,7 @@ game.EnemyEntity = me.Entity.extend(
         // walking & jumping speed
         this.body.setVelocity(4, 6);
     },
-    
+
     // manage the enemy movement
     update : function (dt)
     {            
