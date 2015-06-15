@@ -86,11 +86,11 @@
 		
 		if(direction === "Up") {
 			bullet.style.top = (top - 5) + "px";
-			bullet.style.left = (left + 32) + "px";
+			bullet.style.left = (left + 33) + "px";
 		}
 		else if(direction === "Down") {
 			bullet.style.top = (top + 55) + "px";
-			bullet.style.left = (left + 13) + "px";
+			bullet.style.left = (left + 7) + "px";
 		}
 		else if(direction === "Left") {
 			bullet.style.top = (top + 18) + "px";
