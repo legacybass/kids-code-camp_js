@@ -2,6 +2,7 @@
   width: 300px;
   height: 300px;
   background-image: url(http://i.imgur.com/7a6TP8X.png);
+  border: 5px solid hsl(40, 20%, 50%);
 }
 
 .good-guy {
@@ -22,4 +23,5 @@
   position: absolute;
   top: 135px;
   left: 135px;
+  z-index: 10;
 }
