@@ -47,6 +47,8 @@
 		const _x = new WeakMap();
 		const _y = new WeakMap();
 		
+		const movementAmount = 25;
+		
 		// The hero must have a height and width. We also store his movement direction and
 		// the DOM element being used to show him or her.
 		return class Hero {
@@ -68,22 +70,32 @@
 				let element = _element.get(this);
 				let x = _x.get(this);
 				let y = _y.get(this);
+				let rotation = 0;
 				
 				// We check the hero's movement direction and move him that way. We use the
 				// style of the element to make him move.
-				if(direction === Directions.Down)
-					y += 25;
-				else if(direction === Directions.Up)
-					y -= 25;
-				else if(direction === Directions.Left)
-					x -= 25;
-				else if(direction === Directions.Right)
-					x += 25;
+				if(direction === Directions.Down) {
+					y += movementAmount;
+					rotation = 180;
+				}
+				else if(direction === Directions.Up) {
+					y -= movementAmount;
+					rotation = 0;
+				}
+				else if(direction === Directions.Left) {
+					x -= movementAmount;
+					rotation = 270;
+				}
+				else if(direction === Directions.Right) {
+					x += movementAmount;
+					rotation = 90;
+				}
 				
 				_x.set(this, x);
 				_y.set(this, y);
 				element.style.left = `${x}px`;
 				element.style.top = `${y}px`;
+				element.style.transform = `rotate(${rotation}deg)`;
 			}
 		};
 	})();
