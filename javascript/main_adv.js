@@ -46,6 +46,7 @@
 		const _direction = new WeakMap();
 		const _x = new WeakMap();
 		const _y = new WeakMap();
+		const _bounds = new WeakMap();
 		
 		const movementAmount = 25;
 		
@@ -55,11 +56,12 @@
 			get Width() { return _width.get(this); }
 			get Height() { return _height.get(this); }
 			
-			constructor({ width = 50, height = 50, element, direction = Directions.Up } = {}) {
+			constructor({ width = 50, height = 50, element, direction = Directions.Up, bounds } = {}) {
 				_width.set(this, width);
 				_height.set(this, height);
 				_element.set(this, element);
 				_direction.set(this, direction);
+				_bounds.set(this, bounds);
 				
 				// Use these to store the hero's position
 				_x.set(this, Helpers.getLeft(element));
@@ -70,24 +72,25 @@
 				let element = _element.get(this);
 				let x = _x.get(this);
 				let y = _y.get(this);
+				let bounds = _bounds.get(this);
 				let rotation = 0;
 				
 				// We check the hero's movement direction and move him that way. We use the
 				// style of the element to make him move.
 				if(direction === Directions.Down) {
-					y += movementAmount;
+					y = Math.min(y + movementAmount, (bounds.top + bounds.height) - (this.Height * 0.75));
 					rotation = 180;
 				}
 				else if(direction === Directions.Up) {
-					y -= movementAmount;
+					y = Math.max(y - movementAmount, bounds.top);
 					rotation = 0;
 				}
 				else if(direction === Directions.Left) {
-					x -= movementAmount;
+					x = Math.max(x - movementAmount, bounds.left);
 					rotation = 270;
 				}
 				else if(direction === Directions.Right) {
-					x += movementAmount;
+					x = Math.min(x + movementAmount, (bounds.left + bounds.width)  - (this.Width * 0.75));
 					rotation = 90;
 				}
 				
@@ -130,9 +133,11 @@
 				@param {Object} hero - Object containing the DOM element for the hero, and the starting x,y coordinates
 				@param {Array} enemies - Array of objects containing the DOM element for the given enemy and the starting x,y coordinates
 			*/
-			constructor({ hero, enemies = [] } = {}) {
-				_hero.set(this, new Hero({ width: hero.width, height: hero.height, element: hero.element }));
-				const enemyObjs = enemies.map(n => new Enemy({ width: n.width, height: n.height, element: n.element }));
+			constructor({ hero, enemies = [], left = 0, top = 0, width = 300, height = 300 } = {}) {
+				const bounds = { left, top, width, height };
+				_hero.set(this, new Hero({ width: hero.width, height: hero.height, element: hero.element, bounds }));
+				
+				const enemyObjs = enemies.map(n => new Enemy({ width: n.width, height: n.height, element: n.element, bounds }));
 				_enemies.set(this, enemyObjs);
 			}
 			
