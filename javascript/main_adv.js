@@ -25,15 +25,72 @@
 		const _x = new WeakMap();
 		const _y = new WeakMap();
 		const _element = new WeakMap();
+		const _bounds = new WeakMap();
+		const _isFiring = new WeakMap();
+		const _firingToken = new WeakMap();
+		
+		const movementAmount = 10;
+		const movementFrequency = 10;
 		
 		return class Bullet {
 			get X() { return _x.get(this); }
 			get Y() { return _y.get(this); }
 			
-			constructor ({ x, y, element } = {}) {
+			constructor ({ element, bounds } = {}) {
+				_x.set(this, Helpers.getLeft(element));
+				_y.set(this, Helpers.getTop(element));
+				_element.set(this, element);
+				_bounds.set(this, bounds);
+				_isFiring.set(this, false);
+			}
+			
+			Move({ x, y, direction }) {
+				if(_isFiring.get(this))
+					clearInterval(_firingToken.get(this));
+				
 				_x.set(this, x);
 				_y.set(this, y);
-				_element.set(this, element);
+				
+				let bounds = _bounds.get(this);
+				
+				let element = _element.get(this);
+				element.style.top = `${y}px`;
+				element.style.left = `${x}px`;
+				element.style.display = 'block';
+				
+				let token = setInterval(() => {
+					if(y <= bounds.top || y >= (bounds.top + bounds.height)) {
+						clearInterval(token);
+						element.style.display = 'none';
+						return;
+					}
+					if(x <= bounds.left || x >= (bounds.left + bounds.width)) {
+						clearInterval(token);
+						element.style.display = 'none';
+						return;
+					}
+					
+					if(direction === Directions.Up) {
+						y -= movementAmount;
+					}
+					else if(direction === Directions.Down) {
+						y += movementAmount;
+					}
+					else if(direction === Directions.Left) {
+						x -= movementAmount;
+					}
+					else if(direction === Directions.Right) {
+						x += movementAmount;
+					}
+					
+					element.style.top = `${y}px`;
+					element.style.left = `${x}px`;
+					_x.set(this, x);
+					_y.set(this, y);
+				}, movementFrequency);
+				
+				_isFiring.set(this, true);
+				_firingToken.set(this, token);
 			}
 		};
 	})();
@@ -47,6 +104,7 @@
 		const _x = new WeakMap();
 		const _y = new WeakMap();
 		const _bounds = new WeakMap();
+		const _bullet = new WeakMap();
 		
 		const movementAmount = 25;
 		
@@ -56,12 +114,13 @@
 			get Width() { return _width.get(this); }
 			get Height() { return _height.get(this); }
 			
-			constructor({ width = 50, height = 50, element, direction = Directions.Up, bounds } = {}) {
+			constructor({ width = 50, height = 50, element, direction = Directions.Up, bounds, bullet } = {}) {
 				_width.set(this, width);
 				_height.set(this, height);
 				_element.set(this, element);
 				_direction.set(this, direction);
 				_bounds.set(this, bounds);
+				_bullet.set(this, bullet);
 				
 				// Use these to store the hero's position
 				_x.set(this, Helpers.getLeft(element));
@@ -93,12 +152,45 @@
 					x = Math.min(x + movementAmount, (bounds.left + bounds.width)  - (this.Width * 0.75));
 					rotation = 90;
 				}
+				else
+					return;
 				
 				_x.set(this, x);
 				_y.set(this, y);
 				element.style.left = `${x}px`;
 				element.style.top = `${y}px`;
 				element.style.transform = `rotate(${rotation}deg)`;
+				_direction.set(this, direction);
+			}
+			
+			Shoot() {
+				let x = _x.get(this),
+					y = _y.get(this),
+					direction = _direction.get(this);
+				
+				switch(direction) {
+				case Directions.Up:
+					y -= this.Height * 0.1;
+					x += this.Width * 0.66;
+					break;
+				case Directions.Down:
+					y += this.Height * 1.1;
+					x += this.Width * 0.14;
+					break;
+				case Directions.Left:
+					y += this.Height * 0.25;
+					x -= this.Width * 0.2;
+					break;
+				case Directions.Right:
+					y += this.Height * 0.62;
+					x += this.Width * 1.1;
+					break;
+				}
+				
+				_bullet.get(this).Move({
+					x, y,
+					direction: direction
+				});
 			}
 		};
 	})();
@@ -208,7 +300,13 @@
 			*/
 			constructor({ hero, enemies = [], left = 0, top = 0, width = 300, height = 300 } = {}) {
 				const bounds = { left, top, width, height };
-				_hero.set(this, new Hero({ width: hero.width, height: hero.height, element: hero.element, bounds }));
+				let bullet = new Bullet({
+					x: 0,
+					y: 0,
+					element: hero.bullet,
+					bounds
+				});
+				_hero.set(this, new Hero({ width: hero.width, height: hero.height, element: hero.element, bounds, bullet }));
 				
 				const enemyObjs = enemies.map(n => new Enemy({ width: n.width, height: n.height, element: n.element, bounds }));
 				_enemies.set(this, enemyObjs);
@@ -231,7 +329,7 @@
 						_hero.get(this).Move(Directions.Up);
 						break;
 					case 32: // This is the space key
-						
+						_hero.get(this).Shoot();
 						break;
 					}
 				});
@@ -243,9 +341,10 @@
 	
 	const hero = document.querySelector('.good-guy');
 	const crab = document.querySelector('.crab');
+	const bullet = document.querySelector('.bullet');
 	
 	const game = new Game({
-		hero: { element: hero, width: Helpers.getWidth(hero), height: Helpers.getHeight(hero) },
+		hero: { element: hero, width: Helpers.getWidth(hero), height: Helpers.getHeight(hero), bullet },
 		enemies: [{ element: crab, width: Helpers.getWidth(crab), height: Helpers.getHeight(crab) }]
 	});
 	game.Init();
