@@ -107,16 +107,89 @@
 		const _width = new WeakMap();
 		const _height = new WeakMap();
 		const _element = new WeakMap();
+		const _alive = new WeakMap();
+		const _isAttacking = new WeakMap();
+		const _x = new WeakMap();
+		const _y = new WeakMap();
+		const _bounds = new WeakMap();
+		
+		const movementAmount = 15;
+		const movementFrequency = 1000;
 		
 		// The enemy has a width and height like the hero. It also has a DOM element.
 		return class Enemy {
 			get Width() { return _width.get(this); }
 			get Height() { return _height.get(this); }
+			get IsAlive() { return _alive.get(this); }
+			set IsAlive(value) { _alive.set(this, value); }
+			get IsAttacking() { return _isAttacking.get(this); }
 			
-			constructor({ width = 50, height = 50, element } = {}) {
+			constructor({ width = 50, height = 50, element, bounds } = {}) {
 				_width.set(this, width);
 				_height.set(this, height);
 				_element.set(this, element);
+				_alive.set(this, true);
+				_isAttacking.set(this, false);
+				_bounds.set(this, bounds);
+				
+				// Use these to store the hero's position
+				_x.set(this, Helpers.getLeft(element));
+				_y.set(this, Helpers.getTop(element));
+			}
+			
+			Attack() {
+				if(_isAttacking.get(this))
+					return;
+					
+				_isAttacking.set(this, true);
+				
+				const token = setInterval(() => {
+					const randomValue = Math.floor(Math.random() * 4);
+					switch(randomValue) {
+					case 0:
+						this.Move(Directions.Up);
+						break;
+					case 1:
+						this.Move(Directions.Down);
+						break;
+					case 2:
+						this.Move(Directions.Left);
+						break;
+					case 3:
+						this.Move(Directions.Right);
+						break;
+					}
+					
+					if(!_isAttacking.get(this))
+						clearInterval(token);
+				}, movementFrequency);
+			}
+			
+			Move(direction) {
+				let element = _element.get(this);
+				let x = _x.get(this);
+				let y = _y.get(this);
+				let bounds = _bounds.get(this);
+				
+				// We check the hero's movement direction and move him that way. We use the
+				// style of the element to make him move.
+				if(direction === Directions.Down) {
+					y = Math.min(y + movementAmount, (bounds.top + bounds.height) - (this.Height * 0.75));
+				}
+				else if(direction === Directions.Up) {
+					y = Math.max(y - movementAmount, bounds.top);
+				}
+				else if(direction === Directions.Left) {
+					x = Math.max(x - movementAmount, bounds.left);
+				}
+				else if(direction === Directions.Right) {
+					x = Math.min(x + movementAmount, (bounds.left + bounds.width)  - (this.Width * 0.75));
+				}
+				
+				_x.set(this, x);
+				_y.set(this, y);
+				element.style.left = `${x}px`;
+				element.style.top = `${y}px`;
 			}
 		};
 	})();
@@ -142,6 +215,7 @@
 			}
 			
 			Init() {
+				// This allows us to watch for key presses. When the user hits a key, we can tell the hero to move.
 				window.addEventListener('keydown', key => {
 					switch (key.which) {
 					case 40: // This is the down key
@@ -156,11 +230,13 @@
 					case 38: // This is the up key
 						_hero.get(this).Move(Directions.Up);
 						break;
-					case 32:
-						// This is the space key
+					case 32: // This is the space key
+						
 						break;
 					}
 				});
+				
+				_enemies.get(this).forEach(n => n.Attack());
 			}
 		};
 	})();
